@@ -1,0 +1,53 @@
+﻿@{
+    Layout = "~/Shared/_Layout.cshtml";
+    Page.Title = "Edit Journal Entry";
+
+    var entryId = "";
+    var book = "";
+    var chapter = "";
+    var verse = "";
+    var note = "";
+
+    if (!IsPost) {
+        if (!Request.QueryString["ID"].IsEmpty()) {
+            entryId = Request.QueryString["ID"];
+            var db = Database.Open("ScriptureJournal");
+            var dbCommand = "SELECT book, chapter, verse, note FROM entries WHERE ID = @0";
+            var row = db.QuerySingle(dbCommand, entryId);
+            book = row.book;
+            chapter = row.chapter;
+            verse = row.verse;
+            note = row.note;
+        } else {
+            Response.Redirect("~/index");
+        }
+    }
+
+    if (IsPost) {
+        entryId = Request.Form["id"];
+        book = Request.Form["book"];
+        chapter = Request.Form["chapter"];
+        verse = Request.Form["verse"];
+        note = Request.Form["note"];
+        var db = Database.Open("ScriptureJournal");
+        var updateCommand = "UPDATE entries SET book = @0, chapter = @1, verse = @2, note = @3 WHERE id = @4";
+        db.Execute(updateCommand, book, chapter, verse, note, entryId);
+        Response.Redirect("~/index");
+    }
+}
+
+<div class="formContainer">
+    <form id="editJournalEntry" method="post">
+        <input id="idEntry" type="hidden" name="id" value="@entryId"/>
+        <label for="bookEntry">Book:</label>
+        <input id="bookEntry" type="text" name="book" value="@book" required /> <br />
+        <label for="chapterEntry">Chapter(s):</label>
+        <input id="chapterEntry" type="text" name="chapter" value="@chapter" pattern="([1-9]\d*-\d+|[1-9]+)" required /> <br />
+        <label for="verseEntry">Verse(s):</label>
+        <input id="verseEntry" type="text" name="verse" value="@verse" pattern="([1-9]\d*-\d+|[1-9]+)" /> <br />
+        <label for="noteEntry">Notes:</label>
+        <textarea id="noteEntry" name="note" rows="10" cols="75" required>@note</textarea> <br />
+        <input id="entrySubmit" type="submit" value="Submit" />
+        <input id="entryReset" type="reset" value="Reset" />
+    </form>
+</div>

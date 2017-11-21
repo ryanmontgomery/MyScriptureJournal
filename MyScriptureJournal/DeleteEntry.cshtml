@@ -1,0 +1,47 @@
+﻿@{
+    Layout = "~/Shared/_Layout.cshtml";
+    Page.Title = "Delete Journal Entry";
+
+    var entryId = "";
+    var book = "";
+    var chapter = "";
+    var verse = "";
+    var note = "";
+
+    if (!IsPost) {
+        if (!Request.QueryString["ID"].IsEmpty()) {
+            entryId = Request.QueryString["ID"];
+            var db = Database.Open("ScriptureJournal");
+            var dbCommand = "SELECT book, chapter, verse, note FROM entries WHERE ID = @0";
+            var row = db.QuerySingle(dbCommand, entryId);
+            book = row.book;
+            chapter = row.chapter;
+            verse = row.verse;
+            note = row.note;
+        } else {
+            Response.Redirect("~/index");
+        }
+    }
+
+    if (IsPost && !Request["buttonDelete"].IsEmpty()) {
+        entryId = Request.Form["id"];
+        var db = Database.Open("ScriptureJournal");
+        var deleteCommand = "DELETE FROM entries WHERE id = @0";
+        db.Execute(deleteCommand, entryId);
+        Response.Redirect("~/index");
+    }
+}
+
+<form id="deleteJournalEntry" method="post">
+    <input id="entryId" type="hidden" name="id" value="@entryId" />
+    <label>Book:</label>
+    <span>@book</span> <br />
+    <label>Chapter(s):</label>
+    <span>@chapter</span> <br />
+    <label>Verse(s):</label>
+    <span>@verse</span> <br />
+    <label>Notes</label>
+    <span>@note</span> <br />
+    <input id="entryDelete" type="submit" name="buttonDelete" value="Delete" />
+    <input id="entryDeleteCancel" type="submit" value="Cancel" formaction="~/index" />
+</form>

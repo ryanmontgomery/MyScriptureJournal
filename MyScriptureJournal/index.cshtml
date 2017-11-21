@@ -1,0 +1,63 @@
+﻿@{
+    Layout = "~/Shared/_Layout.cshtml";
+    Page.Title = "Journal Entry List";
+
+    var db = Database.Open("ScriptureJournal");
+    var selectCommand = "SELECT * FROM Entries";
+    var searchTerm = "";
+    var searchTerm2 = "";
+
+    if (!Request.QueryString["bookSearch"].IsEmpty() && Request.QueryString["keywordSearch"].IsEmpty()) {
+        selectCommand = "SELECT * FROM entries WHERE book = @0";
+        searchTerm = Request.QueryString["bookSearch"];
+    }
+
+    if (Request.QueryString["bookSearch"].IsEmpty() && !Request.QueryString["keywordSearch"].IsEmpty()) {
+        selectCommand = "SELECT * FROM entries WHERE note LIKE @0";
+        searchTerm = "%" + Request["keywordSearch"] + "%";
+    }
+
+    if (!Request.QueryString["bookSearch"].IsEmpty() && !Request.QueryString["keywordSearch"].IsEmpty()) {
+        selectCommand = "SELECT * FROM entries WHERE book = @0 And note LIKE @1";
+        searchTerm = Request.QueryString["bookSearch"];
+        searchTerm2 = "%" + Request.QueryString["keywordSearch"] + "%";
+    }
+
+    var selectedData = db.Query(selectCommand, searchTerm, searchTerm2);
+    var grid = new WebGrid(source: selectedData, rowsPerPage: 5);
+}
+
+<form class="search" method="get">
+    <div class="col">
+        <label class="searchLabel" for="bookSearch">Search By Book:</label>
+        <input id="bookSearch" type="text" name="bookSearch" />
+    </div>
+    <div class="col">
+        <label class="searchLabel" for="keywordSearch">Search By Keyword:</label>
+        <input id="keywordSearch" type="text" name="keywordSearch" pattern="(^\S*$)" />
+    </div>
+    <div class="col1">
+        <input type="submit" value="Search" />
+    </div>
+</form>
+    
+<div class="journalGrid">
+    @grid.GetHtml(
+            headerStyle: "head",
+            alternatingRowStyle: "alt",
+            columns: grid.Columns(
+                grid.Column(format: @<a href="~/EditEntry?id=@item.ID">Edit</a>),
+                grid.Column("ID"),
+                grid.Column("Book"),
+                grid.Column("Chapter"),
+                grid.Column("Verse"),
+                grid.Column("Note"),
+                grid.Column("Date_Added"),
+                grid.Column(format: @<a href="~/DeleteEntry?id=@item.ID">Delete</a>)
+                )
+        )
+</div>
+
+<form action="~/AddEntry.cshtml">
+    <input id="goToAddEntry" type="submit" value="New Entry" />
+</form>

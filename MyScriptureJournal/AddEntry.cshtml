@@ -1,0 +1,37 @@
+﻿@{
+    Layout = "~/Shared/_Layout.cshtml";
+    Page.Title = "New Journal Entry";
+
+    var book = "";
+    var chapter = "";
+    var verse = "";
+    var note = "";
+    var date_added = DateTime.Now;
+
+    if(IsPost){
+        book = Request.Form["book"];
+        chapter = Request.Form["chapter"];
+        verse = Request.Form["verse"];
+        note = Request.Form["note"];
+
+        var db = Database.Open("ScriptureJournal");
+        var insertCommand = "INSERT INTO entries (book, chapter, verse, note, date_added) VALUES (@0, @1, @2, @3, @4)";
+        db.Execute(insertCommand, book, chapter, verse, note, date_added);
+        Response.Redirect("~/index");
+    }
+}
+
+<div class="formContainer">
+    <form id="newJournalEntry" method="post">
+        <label for="bookEntry">Book:</label>
+        <input id="bookEntry" type="text" name="book" required /> <br />
+        <label for="chapterEntry">Chapter(s):</label>
+        <input id="chapterEntry" type="text" name="chapter" pattern="([1-9]\d*-\d+|[1-9]+)" required /> <br />
+        <label for="verseEntry">Verse(s):</label>
+        <input id="verseEntry" type="text" name="verse" pattern="([1-9]\d*-\d+|[1-9]+)" /> <br />
+        <label for="noteEntry">Notes:</label>
+        <textarea id="noteEntry" name="note" rows="10" cols="75" required></textarea> <br />
+        <input id="entrySubmit" type="submit" value="Submit" />
+        <input id="entryReset" type="reset" value="Reset" />
+    </form>
+</div>
